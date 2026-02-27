@@ -155,6 +155,37 @@ button:hover {
   color: #16a34a;
   top: 80px;
 }
+  /* ===== Tablet Keyboard ===== */
+
+#tabletKeyboard {
+  margin-top: 25px;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+#tabletKeyboard button {
+  width: 70px;
+  height: 60px;
+  font-size: 22px;
+  margin: 6px;
+  border-radius: 18px;
+  background: #f0f9ff;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  transition: transform 0.1s ease;
+}
+
+#tabletKeyboard button:active {
+  transform: scale(0.95);
+}
+
+.enter-btn {
+  width: 240px !important;
+  background: #bbf7d0 !important;
+}
 </style>
 </head>
 
@@ -182,17 +213,40 @@ button:hover {
 
 <div>
   <label style="font-size:20px;">Lösung: </label>
-  <input type="text" id="answerInput" disabled>
+<input type="text" id="answerInput" inputmode="decimal" readonly>
 
   <span id="unitSelection" style="display:none;">
     <button class="toggle-btn active" id="euroBtn" onclick="setUnit('euro')">Euro</button>
     <button class="toggle-btn" id="centBtn" onclick="setUnit('cent')">Cent</button>
   </span>
 
-  <button onclick="checkAnswer()">✔ Prüfen</button>
   <button onclick="repeatTask()">🔁 Wiederholen</button>
 </div>
-
+<div id="tabletKeyboard" style="display:none;">
+  <div class="keyboard-row">
+    <button onclick="pressKey('7')">7</button>
+    <button onclick="pressKey('8')">8</button>
+    <button onclick="pressKey('9')">9</button>
+  </div>
+  <div class="keyboard-row">
+    <button onclick="pressKey('4')">4</button>
+    <button onclick="pressKey('5')">5</button>
+    <button onclick="pressKey('6')">6</button>
+  </div>
+  <div class="keyboard-row">
+    <button onclick="pressKey('1')">1</button>
+    <button onclick="pressKey('2')">2</button>
+    <button onclick="pressKey('3')">3</button>
+  </div>
+  <div class="keyboard-row">
+    <button onclick="pressKey('0')">0</button>
+    <button onclick="pressKey(',')">,</button>
+    <button onclick="deleteKey()">⌫</button>
+  </div>
+  <div class="keyboard-row">
+    <button class="enter-btn" onclick="checkAnswer()">✔</button>
+  </div>
+</div>
 <div id="stats">0 von 10 richtig</div>
 
 <div id="summary" style="display:none;">
@@ -635,6 +689,31 @@ function positionSystemMarker(){
   const center = rect.left - wrapperRect.left + rect.width / 2;
 
   marker.style.left = (center - marker.offsetWidth / 2) + "px";
+}
+  // Tablet-Erkennung
+function isTouchDevice() {
+  return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+}
+
+// Tastatur nur bei Tablet anzeigen
+window.addEventListener("load", function(){
+  if(isTouchDevice()){
+    document.getElementById("tabletKeyboard").style.display = "block";
+  }
+});
+
+// Tasteneingabe
+function pressKey(key){
+  const input = document.getElementById("answerInput");
+
+  if(key === "," && input.value.includes(",")) return;
+
+  input.value += key;
+}
+
+function deleteKey(){
+  const input = document.getElementById("answerInput");
+  input.value = input.value.slice(0, -1);
 }
 </script>
 </body>
