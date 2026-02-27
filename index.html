@@ -717,6 +717,19 @@ function deleteKey(){
   const input = document.getElementById("answerInput");
   input.value = input.value.slice(0, -1);
 }
+  // Enter-Taste global abfangen (nur Desktop)
+document.addEventListener("keydown", function(e){
+
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+  if(!isTouch && e.key === "Enter"){
+    const input = document.getElementById("answerInput");
+
+    if(!input.disabled && input.value.trim() !== ""){
+      checkAnswer();
+    }
+  }
+});
 </script>
 </body>
 </html>
