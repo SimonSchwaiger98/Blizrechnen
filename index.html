@@ -48,9 +48,9 @@ input.wrong { background-color: #f8d7da; }
 
 <div>
   Anzeigezeit:
-  <button class="duration-btn active" onclick="setDuration(1000,this)">🚀</button>
-  <button class="duration-btn" onclick="setDuration(2000,this)">🐇</button>
-  <button class="duration-btn" onclick="setDuration(3000,this)">🐢</button>
+  <button class="duration-btn active" onclick="setDuration(1500,this)">🚀</button>
+  <button class="duration-btn" onclick="setDuration(2500,this)">🐇</button>
+  <button class="duration-btn" onclick="setDuration(3500,this)">🐢</button>
 </div>
 
 <div id="taskDisplay">Bitte Modus wählen</div>
@@ -84,7 +84,7 @@ let correctAnswer = null;
 let currentMode = null;
 let currentTaskText = "";
 let answerUnit = "euro";
-let displayDuration = 1000;
+let displayDuration = 1500;
 
 let allowedLevels = [1,2,3];
 let wrongStreak = 0;
@@ -130,24 +130,18 @@ function startRound(){
   correctCount=0;
   wrongStreak=0;
   allowedLevels=[1,2,3];
-  usedTasks = new Set();
+  usedTasks=new Set();
   document.getElementById("summary").style.display="none";
   nextTask();
 }
 
 function getRandomLevel(){
+  if(allowedLevels.length===1) return 1;
+  if(allowedLevels.length===2) return Math.random()<0.7?2:1;
 
-  if(allowedLevels.length === 1){
-    return 1;
-  }
-
-  if(allowedLevels.length === 2){
-    return Math.random() < 0.7 ? 2 : 1;
-  }
-
-  let r = Math.random();
-  if(r < 0.15) return 1;
-  if(r < 0.60) return 2;
+  let r=Math.random();
+  if(r<0.15) return 1;
+  if(r<0.60) return 2;
   return 3;
 }
 
@@ -165,9 +159,20 @@ function randomMoney(maxEuro){
 }
 
 function randomMoneyFormat(cents){
-  let variant = Math.random();
-  if(variant < 0.33) return formatMoney(cents);
-  if(variant < 0.66) return (cents/100).toFixed(0)+" €";
+
+  // Über 100 Cent niemals als reine Centzahl anzeigen
+  if(cents > 100){
+
+    let euro=Math.floor(cents/100);
+    let cent=cents%100;
+
+    if(Math.random()<0.4 && cent!==0){
+      return euro+" € "+cent+" ct";
+    }
+
+    return formatMoney(cents);
+  }
+
   return cents+" ct";
 }
 
@@ -182,18 +187,18 @@ function generateTask(){
 
 function generateKopf(){
   let level=getRandomLevel();
-  let max= level===1?20 : level===2?50 : 100;
+  let max=level===1?20:level===2?50:100;
   let a=Math.floor(Math.random()*max)+1;
   let b=Math.floor(Math.random()*max)+1;
-  let op= level===1?"+":(Math.random()<0.5?"+":"-");
-  if(op==="-" && b>a){[a,b]=[b,a];}
+  let op=level===1?"+":(Math.random()<0.5?"+":"-");
+  if(op==="-"&&b>a){[a,b]=[b,a];}
   correctAnswer=op==="+"?a+b:a-b;
   return `${a} ${op} ${b}`;
 }
 
 function generateEinmaleins(){
   let level=getRandomLevel();
-  let max= level===1?5 : level===2?10 : 12;
+  let max=level===1?5:level===2?10:12;
   let a=Math.floor(Math.random()*max)+1;
   let b=Math.floor(Math.random()*max)+1;
   correctAnswer=a*b;
@@ -220,35 +225,43 @@ function generateGeldLeicht(){
 }
 
 function generateGeldSchwer(){
+
   let level=getRandomLevel();
 
   if(level===1){
-    let a=randomMoney(50);
-    let b=randomMoney(50);
+    let a=randomMoney(40);
+    let b=randomMoney(40);
     correctAnswer=a+b;
     return `${randomMoneyFormat(a)} + ${randomMoneyFormat(b)}`;
   }
 
   if(level===2){
-    let a=randomMoney(100);
-    let b=randomMoney(100);
+    let a=randomMoney(80);
+    let b=randomMoney(80);
     let op=Math.random()<0.5?"+":"-";
-    if(op==="-" && b>a){[a,b]=[b,a];}
+    if(op==="-"&&b>a){[a,b]=[b,a];}
     correctAnswer=op==="+"?a+b:a-b;
     return `${randomMoneyFormat(a)} ${op} ${randomMoneyFormat(b)}`;
   }
 
   if(level===3){
-    let a=randomMoney(100);
-    let b=randomMoney(100);
-    let op=Math.random()<0.5?"+":"-";
-    if(op==="-" && b>a){[a,b]=[b,a];}
-    correctAnswer=op==="+"?a+b:a-b;
-    return `${randomMoneyFormat(a)} ${op} ${randomMoneyFormat(b)}`;
+    if(Math.random()<0.75){
+      let a=randomMoney(100);
+      let b=randomMoney(100);
+      let op=Math.random()<0.5?"+":"-";
+      if(op==="-"&&b>a){[a,b]=[b,a];}
+      correctAnswer=op==="+"?a+b:a-b;
+      return `${randomMoneyFormat(a)} ${op} ${randomMoneyFormat(b)}`;
+    } else {
+      let a=randomMoney(40);
+      correctAnswer=a*2;
+      return `${randomMoneyFormat(a)} · 2`;
+    }
   }
 }
 
 function nextTask(){
+
   if(currentTask>=totalTasks){ endRound(); return; }
 
   const input=document.getElementById("answerInput");
@@ -257,12 +270,12 @@ function nextTask(){
   input.disabled=true;
 
   let newTask;
-  let safetyCounter = 0;
+  let safety=0;
 
-  do {
-    newTask = generateTask();
-    safetyCounter++;
-  } while(usedTasks.has(newTask) && safetyCounter < 50);
+  do{
+    newTask=generateTask();
+    safety++;
+  }while(usedTasks.has(newTask)&&safety<50);
 
   usedTasks.add(newTask);
   currentTaskText=newTask;
@@ -273,16 +286,17 @@ function nextTask(){
     document.getElementById("taskDisplay").textContent="";
     input.disabled=false;
     input.focus();
-  }, displayDuration);
+  },displayDuration);
 }
 
 function checkAnswer(){
+
   let raw=document.getElementById("answerInput").value.replace(",",".");
   let value=parseFloat(raw);
 
   if(currentMode.includes("geld")){
     value=answerUnit==="euro"?Math.round(value*100):Math.round(value);
-  } else {
+  }else{
     value=parseInt(value);
   }
 
@@ -290,16 +304,22 @@ function checkAnswer(){
     correctCount++;
     wrongStreak=0;
     document.getElementById("taskDisplay").textContent="Richtig! ✅";
-  } else {
+  }else{
     wrongStreak++;
+
     if(currentMode.includes("geld")){
       document.getElementById("answerInput").value=
         answerUnit==="euro"?formatMoney(correctAnswer):correctAnswer+" ct";
-    } else {
+    }else{
       document.getElementById("answerInput").value=correctAnswer;
     }
+
     document.getElementById("answerInput").classList.add("wrong");
-    if(wrongStreak>=2){ reduceDifficulty(); wrongStreak=0; }
+
+    if(wrongStreak>=2){
+      reduceDifficulty();
+      wrongStreak=0;
+    }
   }
 
   currentTask++;
@@ -313,7 +333,7 @@ function repeatTask(){
   document.getElementById("taskDisplay").textContent=currentTaskText;
   setTimeout(()=>{
     document.getElementById("taskDisplay").textContent="";
-  }, displayDuration);
+  },displayDuration);
 }
 
 function endRound(){
